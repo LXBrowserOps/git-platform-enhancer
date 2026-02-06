@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Open in Dev Container",
+  "version": "2.4",
+  "description": "Modular Menu",
+  "icons": { "128": "icon.png" },
+  "permissions": ["storage"], 
+  "content_scripts": [
+    {
+      "matches": ["*://github.com/*"],
+      "js": [
+        "github/core.js",
+        "github/button/home.js",
+        "github/button/favorite.js",
+        "github/button/create_repo.js",  
+        "github/button/goto_org.js",
+        "github/button/dev_container.js",
+        "github/button/auto_clone_local.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["*://gitlab.com/*"],
+      "js": [
+        "gitlab/core.js",
+        "gitlab/button/home.js",
+        "gitlab/button/favorite.js",
+        "gitlab/button/create_repo.js",
+        "gitlab/button/goto_org.js",
+        "gitlab/button/dev_container.js",
+        "gitlab/button/auto_clone_local.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
