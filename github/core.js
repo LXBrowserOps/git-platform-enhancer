@@ -8,14 +8,16 @@ window.DC_GitHub = {
         const item = document.createElement('div');
         Object.assign(item.style, {
             cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '12px 20px',
-            backgroundColor: '#0d1117', border: '1px solid #30363d', color: '#c9d1d9',
-            borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+            background: 'rgba(255, 255, 255, 0.55)', border: '1px solid rgba(255, 255, 255, 0.65)',
+            color: '#2b2f36', borderRadius: '14px',
+            boxShadow: '0 8px 32px rgba(120, 130, 150, 0.22)',
+            backdropFilter: 'blur(18px) saturate(180%)', WebkitBackdropFilter: 'blur(18px) saturate(180%)',
             fontWeight: '600', fontSize: '14px', whiteSpace: 'nowrap',
-            transition: 'transform 0.2s, background-color 0.2s'
+            transition: 'transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease'
         });
         item.innerHTML = `<span style="margin-right: 10px; font-size: 1.3em;">${icon}</span>${text}`;
-        item.onmouseover = () => { item.style.transform = 'translateX(-5px)'; item.style.backgroundColor = '#161b22'; };
-        item.onmouseout = () => { item.style.transform = 'translateX(0)'; item.style.backgroundColor = '#0d1117'; };
+        item.onmouseover = () => { item.style.transform = 'translateX(-5px)'; item.style.background = 'rgba(255, 255, 255, 0.85)'; item.style.boxShadow = '0 10px 36px rgba(120, 130, 150, 0.32)'; };
+        item.onmouseout = () => { item.style.transform = 'translateX(0)'; item.style.background = 'rgba(255, 255, 255, 0.55)'; item.style.boxShadow = '0 8px 32px rgba(120, 130, 150, 0.22)'; };
         item.onclick = onClick;
         return item;
     },
@@ -70,10 +72,12 @@ window.DC_GitHub = {
     Object.assign(toggleBtn.style, {
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         width: '60px', height: '60px', borderRadius: '50%', cursor: 'pointer',
-        fontSize: '36px', fontWeight: '300', color: '#ffffff',
-        background: 'linear-gradient(135deg, #1f6feb 0%, #0d1117 100%)',
-        border: '1px solid #30363d', boxShadow: '0 6px 16px rgba(0,0,0,0.4)',
-        transition: 'transform 0.3s, opacity 0.2s', pointerEvents: 'auto'
+        fontSize: '36px', fontWeight: '300', color: '#3a3f47',
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(214,220,229,0.7) 100%)',
+        border: '1px solid rgba(255,255,255,0.7)',
+        boxShadow: '0 8px 32px rgba(120, 130, 150, 0.3)',
+        backdropFilter: 'blur(18px) saturate(180%)', WebkitBackdropFilter: 'blur(18px) saturate(180%)',
+        transition: 'transform 0.3s ease, opacity 0.2s ease, background 0.3s ease', pointerEvents: 'auto'
     });
     window.DC_GitHub.toggleBtn = toggleBtn;
 
@@ -91,13 +95,13 @@ window.DC_GitHub = {
         if (isOpen) {
             toggleBtn.innerHTML = '−';
             toggleBtn.style.transform = 'rotate(180deg)';
-            toggleBtn.style.background = 'linear-gradient(135deg, #da3633 0%, #b62324 100%)';
+            toggleBtn.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(186,196,210,0.8) 100%)';
             list.style.opacity = '1'; list.style.transform = 'translateY(0) scale(1)'; list.style.pointerEvents = 'auto';
             window.dispatchEvent(new CustomEvent('DC_MenuOpened'));
         } else {
             toggleBtn.innerHTML = '+';
             toggleBtn.style.transform = 'rotate(0deg)';
-            toggleBtn.style.background = 'linear-gradient(135deg, #1f6feb 0%, #0d1117 100%)';
+            toggleBtn.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(214,220,229,0.7) 100%)';
             list.style.opacity = '0'; list.style.transform = 'translateY(10px) scale(0.95)'; list.style.pointerEvents = 'none';
             window.dispatchEvent(new CustomEvent('DC_MenuClosed'));
         }
