@@ -13,29 +13,39 @@ and one matching `*://gitlab.com/*` — each listing an ordered array of scripts
 The two entries are separate sandboxes in the sense that matters here: a page is only ever
 one of the two, so only one platform's scripts run on any given page.
 
-Order within each array is significant and is expressed nowhere else. The core module must
-run first; every feature module depends on the namespace it creates.
+Order within each array is significant and is expressed nowhere else: the adapter loads
+first, the shared modules next, and `shared/bootstrap.js` last.
 
-## Core and modules
+## One runtime, two adapters
 
-**`{platform}/core.js`** is the entry point. It:
+The behaviour of the extension is identical on both platforms, so it is written once, in
+`shared/`. Everything that genuinely differs between GitHub and GitLab — URL parsing, the
+storage key, host URLs, fonts, event names — lives in a per-platform **adapter** at
+`{platform}/platform.js`.
 
-1. Parses `window.location.pathname` into a context object describing the current page —
-   the owner, the repository, a suggested local path, and whether the page is a repository
-   page or an organization page.
-2. Builds the floating menu: a fixed-position wrapper, a circular toggle button, and a
-   list container.
-3. Exposes a namespace — `window.DC_GitHub` or `window.DC_GitLab` — carrying that context,
-   the menu handles, and a `createItem` helper.
-4. Dispatches events when the menu opens and closes, so other modules can react.
+| Module | Role |
+|---|---|
+| `{platform}/platform.js` | The adapter. Assigns `window.DC.platform`. |
+| `shared/ui.js` | Visual language and DOM helpers. |
+| `shared/storage.js` | The favorites storage engine. |
+| `shared/core.js` | Builds the floating menu. |
+| `shared/buttons.js` | The simple menu items. |
+| `shared/favorites.js` | Star button, manager modal, browser modal. |
+| `shared/bootstrap.js` | Entry point: reads the adapter, parses context, assembles everything. |
 
-**`{platform}/button/*.js`** are feature modules. Each is an immediately-invoked function
-that checks the namespace exists and that its own precondition holds — usually "we are on
-a repository page" — and returns silently if not. When the precondition holds, it builds
-one menu item and appends it.
+`shared/bootstrap.js` asks the adapter whether the extension should run at all, then hands
+`window.location.pathname` to `parseContext` and gets back a context object describing the
+page — the owner, the project, a suggested local path, and whether this is a repository or
+an organization page.
 
-This is what makes the menu context-aware: nothing filters the list, because a module that
-does not apply never adds itself.
+Each feature then checks its own precondition against that context and adds nothing when it
+does not hold. This is what makes the menu context-aware: nothing filters the list, because
+a feature that does not apply never adds itself.
+
+The adapter interface is documented in
+[`../reference/platform-adapter.md`](../reference/platform-adapter.md). No shared module
+branches on which platform it is running on; when shared behaviour needs to differ, that
+difference becomes a new adapter field.
 
 ## Context detection
 

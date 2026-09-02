@@ -24,7 +24,8 @@ what the browser loads. Orientation, commands and gotchas live in
 | Path | Holds |
 |---|---|
 | `manifest.json` | The extension manifest — the single registry of which scripts load on which host. |
-| `github/`, `gitlab/` | Per-platform content scripts. |
+| `shared/` | The runtime — every behaviour, written once and loaded by both platforms. |
+| `github/`, `gitlab/` | One adapter each, holding only what differs between the platforms. |
 | `icon.png` | The 128px extension icon. |
 
 A new script file is only reachable once it is registered in `manifest.json`. Adding a file
@@ -38,11 +39,15 @@ you.
 * **Styling is inline**, applied with `Object.assign(el.style, { … })`. There is no
   stylesheet, because a content script must not leak styles into the host page or inherit
   them from it.
-* **A shared namespace on `window`** carries the menu handles and the parsed page context
-  between modules. Content scripts run in an isolated world, so this namespace is not
-  visible to the host page.
-* **Load order is significant.** The core module must run before any module that attaches
-  to it; `manifest.json` encodes that order and is the only place it is expressed.
+* **A shared namespace on `window`** — `window.DC` — carries the adapter, the shared
+  modules, and the parsed page context. Content scripts run in an isolated world, so this
+  namespace is not visible to the host page.
+* **Load order is significant.** The adapter runs first, the shared modules next, and
+  `shared/bootstrap.js` last; `manifest.json` encodes that order and is the only place it
+  is expressed.
+* **`shared/` never branches on platform identity.** A difference between GitHub and GitLab
+  is an adapter field, not an `if` in shared code. See
+  [`../wiki/sop/add-platform-adapter.md`](../wiki/sop/add-platform-adapter.md).
 
 Match the surrounding style rather than introducing a new one.
 
