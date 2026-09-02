@@ -8,29 +8,29 @@ description: Current known state of Git Platform Enhancer — what exists, what 
 ## 2026-09-02
 
 **Stack.** Manifest V3 browser extension. Plain browser JavaScript, no build step, no
-package manager, no dependency tree, no test framework. Version `1.0.0`, recorded in
+package manager, no dependency tree, no test framework. Version `1.1.0`, recorded in
 `manifest.json`. Licensed MIT, copyright 2026 BrowserOps.
 
-**What exists.** Two per-platform content-script trees, `github/` and `gitlab/`, each with
-a `core.js` entry point and six `button/` feature modules, injected by two
-`content_scripts` entries in `manifest.json`. Roughly 920 lines of JavaScript in total.
+**What exists.** One runtime under `shared/` used by both platforms, plus one adapter each
+at `github/platform.js` and `gitlab/platform.js` holding only what differs. Two
+`content_scripts` entries in `manifest.json` load the adapter, the shared modules, and
+`shared/bootstrap.js`, in that order.
 
 **Instruction system.** Adopted this date as a Mode B consumer of the shared instruction
 set served by the `lxagents-agents-base` connector. `AGENTS.md`, `.agents/`, and `wiki/`
 now exist; no shared file is vendored and there are no overrides.
 
-**Known state of the code.** The two platform trees are near-duplicates — `core.js` and
-`favorite.js` differ by roughly five percent, the rest being byte-identical. Six defects
-are recorded in `.agents/wiki/context/repository-map.md`, the most serious being an
-`FS.moveItem()` call that has no definition on either platform, so the Move button throws
-on every click.
+**Known state of the code.** The duplication is gone and all seven recorded defects are
+fixed, including a live injection vector in the favorites UI. What must not regress is
+listed as "behaviour to preserve" in `.agents/wiki/context/repository-map.md`.
 
-**In flight.** A five-task request is underway: this instruction-system adoption, then a
-record, then extraction of the duplicated code into a shared runtime with per-platform
-adapters, then the defect fixes, then a release at `1.1.0`. The user has approved the plan
-and has standing permission to open pull requests and to merge.
+**In flight.** The five-task request is complete through the release task; branches are
+stacked and awaiting pull requests and merge, for which the user has given standing
+permission.
 
-**Not yet built.** No shared code layer, no automated tests, no CI, no support for
-self-hosted GitHub or GitLab instances, and no export path for favorites data.
+**Not yet built.** No automated tests in the repository and no CI — the verification for
+this work was run from harnesses outside it, driving Chromium through Playwright. No
+support for self-hosted GitHub or GitLab instances, and no export path for favorites data.
 
-**Next obvious step.** Task 2 — write the task record for the shared-runtime work.
+**Next obvious step.** Open the five pull requests, merge them in order, and confirm the
+default branch matches the top of the stack.
