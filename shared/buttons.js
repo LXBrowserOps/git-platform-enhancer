@@ -37,10 +37,9 @@ window.DC.addButtons = function(menu) {
     const cloneBtn = menu.createItem('Auto Clone Local', '📂', async () => {
         try {
             await navigator.clipboard.writeText(context.localPath);
-            const originalHTML = cloneBtn.innerHTML;
-            cloneBtn.innerHTML = '✅ Copied!';
+            window.DC.ui.setItemLabel(cloneBtn, '✅', 'Copied!');
             setTimeout(() => {
-                cloneBtn.innerHTML = originalHTML;
+                window.DC.ui.setItemLabel(cloneBtn, '📂', 'Auto Clone Local');
                 window.location.href = 'vscode://vscode.git/clone?url='
                     + encodeURIComponent(context.cloneUrl);
             }, 800);

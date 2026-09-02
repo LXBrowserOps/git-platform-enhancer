@@ -29,8 +29,16 @@ window.DC.ui = (function() {
         Z: '2147483647'
     };
 
-    function itemMarkup(icon, text) {
-        return '<span style="margin-right: 10px; font-size: 1.3em;">' + icon + '</span>' + text;
+    // Built as nodes, never as markup: `text` is page-derived (a repository or group
+    // name taken from the URL) and interpolating it into innerHTML makes a crafted path
+    // an injection vector.
+    function fillItem(item, icon, text) {
+        item.textContent = '';
+        const glyph = document.createElement('span');
+        Object.assign(glyph.style, { marginRight: '10px', fontSize: '1.3em' });
+        glyph.textContent = icon;
+        item.appendChild(glyph);
+        item.appendChild(document.createTextNode(text));
     }
 
     return {
@@ -48,7 +56,7 @@ window.DC.ui = (function() {
                 fontWeight: '600', fontSize: '14px', whiteSpace: 'nowrap',
                 transition: 'transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease'
             });
-            item.innerHTML = itemMarkup(icon, text);
+            fillItem(item, icon, text);
             item.onmouseover = () => {
                 item.style.transform = 'translateX(-5px)';
                 item.style.background = T.itemBgHover;
@@ -64,7 +72,7 @@ window.DC.ui = (function() {
         },
 
         setItemLabel: function(item, icon, text) {
-            item.innerHTML = itemMarkup(icon, text);
+            fillItem(item, icon, text);
         },
 
         // A circular floating action button.

@@ -23,14 +23,19 @@ window.DC.platform = {
         const reserved = ['dashboard', 'projects', 'groups', 'users', 'explore', 'help', 'admin', 'search', '-', 'profile'];
         const isReserved = parts[0] && reserved.includes(parts[0]);
 
-        const isRepoContext = parts.length >= 2 && !isReserved;
+        // Everything before the /-/ separator is the project path, however many groups
+        // it nests through. Taking the first two segments truncated any project in a
+        // subgroup to the subgroup itself.
+        const projectParts = pathname.split('/-/')[0].split('/').filter(Boolean);
+
+        const isRepoContext = projectParts.length >= 2 && !isReserved;
         const isMetaPage = pathname.includes('/-/')
             && !pathname.includes('/-/tree/')
             && !pathname.includes('/-/blob/');
         const isRepoPage = isRepoContext && !isMetaPage;
         const isOrgPage = parts.length === 1 && !isReserved;
 
-        const projectPath = isRepoContext ? parts.slice(0, 2).join('/') : '';
+        const projectPath = isRepoContext ? projectParts.join('/') : '';
 
         return {
             owner: parts[0] || '',

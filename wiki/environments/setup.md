@@ -38,7 +38,8 @@ On **github.com** and again on **gitlab.com**, check:
 | A repository sub-page (Issues, Settings) | Repository-only actions are absent. |
 | An organization or group page | Create Repository is present. |
 | The platform home or dashboard | Menu still appears; repository actions are absent. |
-| A nested subgroup project (GitLab) | The owner button and clone path use the correct project path. |
+| A nested subgroup project (GitLab) | The owner button and clone path use the full project path, including every subgroup. |
+| Click an in-app link to another repository | The menu updates to the new repository without a page reload, and only one menu is present. |
 
 For favorites, on both platforms: save the current repository, confirm the star fills,
 open the browser modal, create a folder, move the entry into it, reopen the modal to

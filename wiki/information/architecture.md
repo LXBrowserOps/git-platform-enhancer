@@ -16,6 +16,11 @@ one of the two, so only one platform's scripts run on any given page.
 Order within each array is significant and is expressed nowhere else: the adapter loads
 first, the shared modules next, and `shared/bootstrap.js` last.
 
+Content scripts are injected once, when the document loads, and are never re-run when the
+user clicks a link inside the application. Both GitHub and GitLab are single-page
+applications, so `shared/bootstrap.js` watches the URL and rebuilds the menu whenever it
+changes; otherwise the menu would keep describing the page the tab was first opened on.
+
 ## One runtime, two adapters
 
 The behaviour of the extension is identical on both platforms, so it is written once, in

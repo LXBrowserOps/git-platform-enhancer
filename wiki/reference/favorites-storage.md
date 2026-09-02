@@ -34,7 +34,8 @@ Two record types share the array, distinguished by `type`.
 ### Pin
 
 A pin is one saved repository in one folder. Saving the same repository to two folders
-creates two pin records.
+creates two pin records with the **same `id`**, so a pin is identified by the combination
+of `id`, `type` and `parentId` — never by `id` alone.
 
 | Field | Type | Meaning |
 |---|---|---|

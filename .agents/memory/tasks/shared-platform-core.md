@@ -90,3 +90,41 @@ place instead of two.
 
 **Left open.** Nothing from this task. The adapter contract page deferred from task 1 was
 written here, in the same commit as the code that establishes it.
+
+## Task 4 — `fix/favorites-and-context`
+
+**Landed.** All seven recorded defects, fixed once in the shared runtime:
+
+1. `FS.moveItem` now exists; the Move button previously threw on every click. Moving a pin
+   onto a folder that already holds the repository merges instead of duplicating.
+2. Pins are addressed by `(id, type, parentId)`. Deleting one copy no longer removes the
+   same repository from every other folder, and folder deletion now cascades to any depth
+   instead of leaving orphaned records.
+3. Page-derived names are added as text nodes. The previous `innerHTML` interpolation was
+   a live injection vector.
+4. `shared/bootstrap.js` rebuilds the menu on every URL change, so the context no longer
+   goes stale on in-app navigation, with each mount's listeners detached via `AbortSignal`
+   and a guard against double injection.
+5. GitHub injection is gated on `document.body`; the old `.application-main` gate hid the
+   menu entirely on newer React-rendered pages.
+6. GitLab resolves the project path as everything before `/-/`, so a project in nested
+   subgroups is no longer truncated to its subgroup.
+7. `setPinFolders` reconciles folder membership in one read and one write; the browser
+   modal takes one snapshot instead of three reads.
+
+Also: `browser.storage.local` is preferred where present, so the storage layer works under
+Firefox as well as Chromium.
+
+**Verified.** A defect harness runs each of the seven against the task 3 code and against
+this one, in Chromium: 0/7 passing before, 7/7 after. The injection case was live — the
+crafted name executed an injected `<img onerror>` before the fix and produces no element
+after it. The render-parity harness from task 3 was re-run against the original
+pre-refactor code: 18 of 20 snapshots unchanged, the two differences being exactly the
+intended injection fix, and a layout measurement confirmed the removed whitespace node
+changes no pixel.
+
+**Established for later tasks.** Nothing further is outstanding. The defect table in
+`.agents/wiki/context/repository-map.md` became a "behaviour to preserve" table.
+
+**Left open.** Storage keys and the record schema are untouched, so no migration is
+needed and existing favorites are unaffected.
