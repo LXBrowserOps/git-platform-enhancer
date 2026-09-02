@@ -21,6 +21,7 @@ request are loaded before work begins.
 
 | File | Scope | Purpose |
 |---|---|---|
+| [`../memory/tasks/shared-platform-core.md`](../memory/tasks/shared-platform-core.md) | Extension source | Confirmed task list and decisions for the shared-runtime extraction. |
 | [`../memory/tasks/agents-setup.md`](../memory/tasks/agents-setup.md) | Instruction system | Record of the agent instruction system adoption. |
 
 Any file added to or removed from `.agents/memory/` is reflected here in the same commit.
