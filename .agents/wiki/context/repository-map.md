@@ -14,19 +14,29 @@ this page carries what an agent needs in order to act correctly.
 | Path | Role |
 |---|---|
 | `manifest.json` | Manifest V3 manifest. Declares two `content_scripts` entries — one for `*://github.com/*`, one for `*://gitlab.com/*` — and the ordered `js` list each injects. **The only place load order exists.** |
-| `github/core.js`, `gitlab/core.js` | Per-platform entry point. Parses the URL into a context object, builds the floating menu, exposes the namespace other modules attach to. |
-| `github/button/*.js`, `gitlab/button/*.js` | Feature modules. Each is an IIFE that bails unless its context precondition holds, then appends one item to the menu. |
-| `github/button/favorite.js`, `gitlab/button/favorite.js` | The favorites system — storage engine, star FAB, manager modal, browser modal. The largest module by a wide margin. |
+| `github/platform.js`, `gitlab/platform.js` | Per-platform **adapter** — URL parsing, storage key, host URLs, fonts, event names. Everything that differs between the two platforms, and nothing else. |
+| `shared/bootstrap.js` | Entry point. Reads the adapter, builds the menu, attaches the feature modules. Loads last. |
+| `shared/core.js` | Builds the floating menu: wrapper, toggle button, and the list features attach to. |
+| `shared/buttons.js` | The simple menu items — Home, owner, Create Repository, Dev Container, Auto Clone Local. |
+| `shared/favorites.js` | The favorites system — star FAB, manager modal, browser modal. The largest module by a wide margin. |
+| `shared/storage.js` | The favorites storage engine over `chrome.storage.local`. |
+| `shared/ui.js` | Shared visual language and DOM helpers. |
 | `icon.png` | 128px extension icon. |
 | `AGENTS.md`, `.agents/` | The agent instruction system. |
 | `wiki/` | Human documentation. |
 
 ## Entry points
 
-Execution starts at `{platform}/core.js`, which must run before any `button/` module.
-`core.js` sets `window.DC_GitHub` or `window.DC_GitLab`, and every button module begins by
-checking that namespace and returning if it is absent. There is no other initialization
-path and no background or service worker.
+Execution starts at `{platform}/platform.js`, which assigns the adapter to
+`window.DC.platform`. The shared modules then register themselves on `window.DC`, and
+`shared/bootstrap.js` — listed last in `manifest.json` — reads the adapter, parses the page
+context, and builds everything. There is no other initialization path and no background or
+service worker.
+
+The adapter interface is documented in
+[`../../../wiki/reference/platform-adapter.md`](../../../wiki/reference/platform-adapter.md);
+the procedure for changing one is
+[`../sop/add-platform-adapter.md`](../sop/add-platform-adapter.md).
 
 ## Build, test, run
 
@@ -49,10 +59,9 @@ change is correct.
 
 These are established from reading the code, not guesses.
 
-* **The two platform trees are near-duplicates.** `core.js` and `favorite.js` differ by
-  roughly five percent — namespace, storage key, URL parsing, font, event names — and the
-  rest is byte-identical. A fix applied to one is almost always needed in the other. Check
-  both before calling a change done.
+* **`shared/` runs on both platforms.** A change there affects GitHub and GitLab at once,
+  so it must be verified on both. Nothing in `shared/` may branch on platform identity —
+  that difference belongs in the adapter.
 * **URL parsing differs fundamentally between the hosts.** GitHub is `/{org}/{repo}` with a
   reserved-word list; GitLab is `/{group}/…/{project}` with a `/-/` separator marking the
   end of the project path and its own reserved list. A change to one parser tells you
@@ -73,9 +82,9 @@ Recorded from a read of the code, for whoever picks this up next:
 
 | Where | Defect |
 |---|---|
-| `{platform}/button/favorite.js` | `FS.moveItem()` is called by the Move button but is never defined on `FS`. The button throws on every click, on both platforms. |
-| `{platform}/button/favorite.js` | Pins are keyed by `id: repoId`, so one repository saved to two folders produces two records with the same `id`; `deleteItem` then removes every copy, plus any item whose `parentId` matches that id. |
-| `{platform}/button/favorite.js`, `{platform}/core.js` | Page-derived names are interpolated into `innerHTML`, so a crafted repository path injects markup. |
-| `github/core.js` | Injection is gated on `.application-main`, which is absent on newer React-rendered GitHub pages; the menu silently never appears there. |
-| `gitlab/core.js` | The project path is taken as the first two path segments, which mis-parses nested subgroups (`group/subgroup/project`). |
-| `{platform}/button/favorite.js` | Every `FS` helper re-reads all of storage, and the manager modal's save loop performs a read and a write per folder in sequence. |
+| `shared/favorites.js` | `FS.moveItem()` is called by the Move button but is never defined on `FS`. The button throws on every click, on both platforms. |
+| `shared/storage.js` | Pins are keyed by `id: repoId`, so one repository saved to two folders produces two records with the same `id`; `deleteItem` then removes every copy, plus any item whose `parentId` matches that id. |
+| `shared/favorites.js`, `shared/ui.js` | Page-derived names are interpolated into `innerHTML`, so a crafted repository path injects markup. |
+| `github/platform.js` | Injection is gated on `.application-main`, which is absent on newer React-rendered GitHub pages; the menu silently never appears there. |
+| `gitlab/platform.js` | The project path is taken as the first two path segments, which mis-parses nested subgroups (`group/subgroup/project`). |
+| `shared/storage.js` | Every `FS` helper re-reads all of storage, and the manager modal's save loop performs a read and a write per folder in sequence. |

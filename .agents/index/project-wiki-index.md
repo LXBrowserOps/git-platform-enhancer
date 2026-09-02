@@ -25,6 +25,7 @@ description: Index of wiki/ — the human documentation tree for Git Platform En
 
 | File | Purpose |
 |---|---|
+| [`../../wiki/reference/platform-adapter.md`](../../wiki/reference/platform-adapter.md) | The adapter interface each platform implements, field by field. |
 | [`../../wiki/reference/favorites-storage.md`](../../wiki/reference/favorites-storage.md) | The `chrome.storage.local` record schema for favorites, field by field. |
 
 Any file added to or removed from `wiki/` is reflected here in the same commit.
