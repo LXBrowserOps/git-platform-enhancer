@@ -10,6 +10,7 @@ description: Release history of Git Platform Enhancer, newest version first.
 
 | Version | Log | Summary |
 |---|---|---|
+| 1.1.0 | [`../../wiki/logs/1/1/0/CHANGELOG.md`](../../wiki/logs/1/1/0/CHANGELOG.md) | One shared runtime with per-platform adapters; seven defects fixed, including an injection vector. |
 | 1.0.0 | [`../../wiki/logs/1/0/0/CHANGELOG.md`](../../wiki/logs/1/0/0/CHANGELOG.md) | Initial release: modular GitHub and GitLab menus, favorites manager, VS Code hand-off. |
 
 A new version directory is created only with explicit user approval, and is listed here in
