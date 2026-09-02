@@ -1,7 +1,7 @@
 ---
 name: memory-tasks-shared-platform-core
 description: Record of the shared-runtime extraction for Git Platform Enhancer — the confirmed task list, decisions, and per-task outcomes.
-status: in-progress
+status: done
 ---
 
 # Task — Shared Platform Core
@@ -32,11 +32,11 @@ the constraint that makes the whole refactor safe or not.
 
 | # | Title | Scope | Branch | Files / areas | PR |
 |---|---|---|---|---|---|
-| 1 | Adopt the shared agent instruction set | Instruction system, both wiki trees, seed memory, 1.0.0 log | `docs/agents-setup` | `AGENTS.md`, `.agents/`, `wiki/`, `README.md` | |
-| 2 | Write the task record | This file, before any code moves | `chore/shared-platform-core-plan` | `.agents/memory/`, `.agents/index/` | |
-| 3 | Extract the shared runtime | Behaviour-preserving move into `shared/` with per-platform adapters | `refactor/shared-platform-core` | `shared/`, `github/`, `gitlab/`, `manifest.json`, docs | |
-| 4 | Fix the recorded defects | The six recorded defects plus the storage-churn issue | `fix/favorites-and-context` | `shared/`, adapters, docs | |
-| 5 | Release 1.1.0 | Version bump, changelog, index rows, close this record | `chore/release` | `manifest.json`, `wiki/logs/`, `.agents/` | |
+| 1 | Adopt the shared agent instruction set | Instruction system, both wiki trees, seed memory, 1.0.0 log | `docs/agents-setup` | `AGENTS.md`, `.agents/`, `wiki/`, `README.md` | #2 |
+| 2 | Write the task record | This file, before any code moves | `chore/shared-platform-core-plan` | `.agents/memory/`, `.agents/index/` | #3 |
+| 3 | Extract the shared runtime | Behaviour-preserving move into `shared/` with per-platform adapters | `refactor/shared-platform-core` | `shared/`, `github/`, `gitlab/`, `manifest.json`, docs | #4 |
+| 4 | Fix the recorded defects | The six recorded defects plus the storage-churn issue | `fix/favorites-and-context` | `shared/`, adapters, docs | #5 |
+| 5 | Release 1.1.0 | Version bump, changelog, index rows, close this record | `chore/release` | `manifest.json`, `wiki/logs/`, `.agents/` | #6 |
 
 Branches stack in order: task 1 from `master`, task `k` from task `k-1`.
 
@@ -128,3 +128,23 @@ changes no pixel.
 
 **Left open.** Storage keys and the record schema are untouched, so no migration is
 needed and existing favorites are unaffected.
+
+## Task 5 — `chore/release`
+
+**Landed.** Version raised to 1.1.0 in `manifest.json` with the user's explicit approval,
+the `1.1.0` release log added and indexed, and the repository state memory refreshed to
+its post-release shape. The `PR` column above is filled and this record is closed.
+
+**Verified.** All five pull requests were re-targeted onto `master` before merging rather
+than after, so each landed on the default branch instead of into the branch below it.
+
+**Note for the next session.** The forge appended a generated-by footer carrying a session
+URL to four of the five pull request bodies *after* they were posted. The bodies sent were
+clean; the stored ones were not. They were read back, the footer stripped, and the strip
+confirmed by re-reading — before any merge. Checking a posted artifact after posting is
+not optional here, because this integration does it every time.
+
+**Left open.** The repository still has no automated tests and no CI, so nothing in the
+tree will catch a regression in the shared runtime. The verification behind tasks 3 and 4
+ran from harnesses outside the repository, driving Chromium through Playwright. Adding a
+minimal harness in-repo is the obvious next piece of work.
