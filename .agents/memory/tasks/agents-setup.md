@@ -15,7 +15,7 @@ release log — with nothing copied from the shared set.
 
 This is task 1 of a five-task request. Tasks 2 through 5 cover the shared-runtime
 extraction, the defect fixes, and the release; their record is
-`.agents/memory/tasks/shared-platform-core.md`, created in task 2.
+[`shared-platform-core.md`](shared-platform-core.md), created in task 2.
 
 ## Tasks
 
