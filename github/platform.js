@@ -11,8 +11,10 @@ window.DC.platform = {
     menuOpenedEvent: 'DC_MenuOpened',
     menuClosedEvent: 'DC_MenuClosed',
 
+    // Gating on `.application-main` used to hide the menu entirely on newer
+    // React-rendered pages, where that container no longer exists.
     canInject: function() {
-        return !!document.querySelector('.application-main');
+        return !!document.body;
     },
 
     // GitHub repositories are /{owner}/{repo}. A third segment is a sub-page rather than

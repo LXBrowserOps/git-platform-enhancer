@@ -76,15 +76,18 @@ These are established from reading the code, not guesses.
 * **`chrome.storage.local` throws after an extension reload** while an old tab is still
   open. Every read is wrapped so it resolves to an empty list rather than rejecting.
 
-## Known defects
+## Behaviour to preserve
 
-Recorded from a read of the code, for whoever picks this up next:
+These were defects, fixed and covered by the verification described in
+`.agents/memory/tasks/shared-platform-core.md`. Re-introducing any of them is a
+regression, not a new bug.
 
-| Where | Defect |
+| Area | What must hold |
 |---|---|
-| `shared/favorites.js` | `FS.moveItem()` is called by the Move button but is never defined on `FS`. The button throws on every click, on both platforms. |
-| `shared/storage.js` | Pins are keyed by `id: repoId`, so one repository saved to two folders produces two records with the same `id`; `deleteItem` then removes every copy, plus any item whose `parentId` matches that id. |
-| `shared/favorites.js`, `shared/ui.js` | Page-derived names are interpolated into `innerHTML`, so a crafted repository path injects markup. |
-| `github/platform.js` | Injection is gated on `.application-main`, which is absent on newer React-rendered GitHub pages; the menu silently never appears there. |
-| `gitlab/platform.js` | The project path is taken as the first two path segments, which mis-parses nested subgroups (`group/subgroup/project`). |
-| `shared/storage.js` | Every `FS` helper re-reads all of storage, and the manager modal's save loop performs a read and a write per folder in sequence. |
+| `shared/storage.js` | A pin is identified by `(id, type, parentId)`, never by `id` alone — the same repository may be pinned into several folders. Deleting one copy leaves the others. |
+| `shared/storage.js` | Deleting a folder removes everything beneath it to any depth, so no record is orphaned. |
+| `shared/storage.js` | `setPinFolders` reconciles membership in one read and one write. Do not reintroduce a per-folder loop. |
+| `shared/ui.js`, `shared/favorites.js` | Page-derived text is added with `textContent` or a text node, never by interpolating into `innerHTML`. Repository and group names come from the URL. |
+| `shared/bootstrap.js` | The menu is rebuilt on every URL change, and each mount's listeners are detached through its `AbortSignal`. Exactly one wrapper exists at a time. |
+| `github/platform.js` | Injection is gated on `document.body`, not on a host-specific container that newer pages no longer render. |
+| `gitlab/platform.js` | The project path is everything before the `/-/` separator, so a project inside nested subgroups resolves in full. |

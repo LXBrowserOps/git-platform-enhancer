@@ -3,7 +3,7 @@
 // so it stays reachable on pages where the main menu has no repository actions to show.
 window.DC = window.DC || {};
 
-window.DC.initFavorites = function(menu) {
+window.DC.initFavorites = function(menu, signal) {
     const ui = window.DC.ui;
     const T = ui.tokens;
     const { platform, context } = menu;
@@ -72,14 +72,15 @@ window.DC.initFavorites = function(menu) {
     }
 
     // The two floating buttons share a corner, so only one is ever visible.
+    const listenerOpts = signal ? { signal: signal } : undefined;
     window.addEventListener(platform.menuOpenedEvent, () => {
         starFab.style.opacity = '0';
         starFab.style.pointerEvents = 'none';
-    });
+    }, listenerOpts);
     window.addEventListener(platform.menuClosedEvent, () => {
         starFab.style.opacity = '1';
         starFab.style.pointerEvents = 'auto';
-    });
+    }, listenerOpts);
 
     // --- Menu items ---
 
@@ -126,16 +127,19 @@ window.DC.initFavorites = function(menu) {
         const existing = document.getElementById('dc-fav-modal');
         if (existing) existing.remove();
 
-        const allFolders = await FS.getAllFolders();
-        const myPins = await FS.getMyPins();
-        const selectedSet = new Set(myPins.map(p => p.parentId));
+        const snapshot = await FS.getAll();
+        const allFolders = FS.foldersOf(snapshot);
+        const selectedSet = new Set(FS.pinsOf(snapshot).map(p => p.parentId));
         allFolders.sort((a, b) => a.name.localeCompare(b.name));
 
         const overlay = ui.createOverlay('dc-fav-modal');
         const box = ui.createPanel(platform.modalFontFamily, { width: '400px', maxHeight: '80%' });
 
         const header = ui.createHeader();
-        header.innerHTML = '<h3 style="margin:0; color:' + T.text + ';">Manage Locations</h3>';
+        const heading = document.createElement('h3');
+        Object.assign(heading.style, { margin: '0', color: T.text });
+        heading.textContent = 'Manage Locations';
+        header.appendChild(heading);
         header.appendChild(ui.createCloseButton('20px', () => overlay.remove()));
         box.appendChild(header);
 
@@ -243,13 +247,8 @@ window.DC.initFavorites = function(menu) {
         });
         saveBtn.onclick = async () => {
             saveBtn.innerText = 'Saving...';
-            for (const folder of allFolders) {
-                const wantsPin = selectedSet.has(folder.id);
-                const hasPin = myPins.some(p => p.parentId === folder.id);
-                if (wantsPin && !hasPin) await FS.addPin(folder.id);
-                else if (!wantsPin && hasPin) await FS.removePinFromFolder(folder.id);
-            }
-            updateStarVisuals(await FS.isPinned());
+            const pinned = await FS.setPinFolders([...selectedSet]);
+            updateStarVisuals(pinned);
             overlay.remove();
         };
         footer.appendChild(createBtn);
@@ -266,7 +265,9 @@ window.DC.initFavorites = function(menu) {
         const existing = document.getElementById('dc-fav-modal');
         if (existing) existing.remove();
 
-        const dirItems = await FS.getDir(currentFolderId);
+        const snapshot = await FS.getAll();
+        const currentFolder = snapshot.find(i => i.id === currentFolderId);
+        const dirItems = FS.dirOf(snapshot, currentFolderId);
         dirItems.sort((a, b) => a.name.localeCompare(b.name));
 
         const overlay = ui.createOverlay('dc-fav-modal');
@@ -281,23 +282,15 @@ window.DC.initFavorites = function(menu) {
                 background: 'rgba(255, 255, 255, 0.5)',
                 border: '1px solid ' + T.lineStrong, color: T.text, padding: '5px 10px'
             });
-            FS.getAll().then(all => {
-                const current = all.find(i => i.id === currentFolderId);
-                backBtn.onclick = () => openBrowserModal(current ? current.parentId : 'root');
-            });
+            backBtn.onclick = () => openBrowserModal(currentFolder ? currentFolder.parentId : 'root');
             titleArea.appendChild(backBtn);
         }
 
         const titleText = document.createElement('h2');
         Object.assign(titleText.style, { margin: '0', color: T.text });
-        if (currentFolderId === 'root') {
-            titleText.innerText = 'list.txt';
-        } else {
-            FS.getAll().then(all => {
-                const f = all.find(i => i.id === currentFolderId);
-                if (f) titleText.innerText = f.name;
-            });
-        }
+        titleText.innerText = currentFolderId === 'root'
+            ? 'list.txt'
+            : (currentFolder ? currentFolder.name : '');
         titleArea.appendChild(titleText);
         header.appendChild(titleArea);
         header.appendChild(ui.createCloseButton('24px', () => overlay.remove()));
@@ -317,10 +310,17 @@ window.DC.initFavorites = function(menu) {
                 border: '1px solid ' + T.line, borderRadius: '10px', color: T.text
             });
 
+            // Built as nodes: item.name comes from a URL and must never be markup.
             const left = document.createElement('div');
             Object.assign(left.style, { display: 'flex', alignItems: 'center', gap: '10px' });
-            left.innerHTML = '<span style="font-size:1.2em">' + (item.type === 'folder' ? '📁' : '📄')
-                + '</span> <div style="font-weight:600;">' + item.name + '</div>';
+            const glyph = document.createElement('span');
+            glyph.style.fontSize = '1.2em';
+            glyph.textContent = item.type === 'folder' ? '📁' : '📄';
+            const label = document.createElement('div');
+            label.style.fontWeight = '600';
+            label.textContent = item.name;
+            left.appendChild(glyph);
+            left.appendChild(label);
 
             if (item.type === 'folder') {
                 row.style.cursor = 'pointer';
@@ -352,7 +352,7 @@ window.DC.initFavorites = function(menu) {
                     border: 'none', color: 'white'
                 });
                 moveBtn.onclick = async () => {
-                    const allFolders = (await FS.getAll()).filter(i => i.type === 'folder' && i.id !== item.id);
+                    const allFolders = FS.foldersOf(await FS.getAll()).filter(i => i.id !== item.id);
                     let folderList = "Root (type 'root')\n";
                     allFolders.forEach(f => { folderList += f.name + " (type '" + f.name + "')\n"; });
                     const destName = prompt('Move \'' + item.name + '\' to:\n' + folderList, 'root');
@@ -363,7 +363,7 @@ window.DC.initFavorites = function(menu) {
                         if (!target) return alert('Folder not found');
                         targetId = target.id;
                     }
-                    await FS.moveItem(item.id, targetId);
+                    await FS.moveItem(item, targetId);
                     openBrowserModal(currentFolderId);
                 };
                 actions.appendChild(moveBtn);
@@ -374,7 +374,7 @@ window.DC.initFavorites = function(menu) {
             });
             delBtn.onclick = async () => {
                 if (!confirm('Delete ' + item.name + '?')) return;
-                await FS.deleteItem(item.id);
+                await FS.deleteItem(item);
                 openBrowserModal(currentFolderId);
                 if (repoId && item.id === repoId) updateStarVisuals(await FS.isPinned());
             };
